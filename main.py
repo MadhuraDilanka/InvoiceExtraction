@@ -121,45 +121,35 @@ async def process_invoice(file_content: bytes, filename: str) -> dict:
         )
         result = poller.result()
         
-        # Initialize response structure
-        invoice_data = {
-            "CustomerName": None,
-            "CustomerAddress": None,
-            "InvoiceDate": None,
-            "InvoiceId": None,
-            "InvoiceTotal": None,
-            "confidence_scores": {}
+        # Field mapping for the new format
+        field_mapping = {
+            'CustomerName': 'Customer Name',
+            'CustomerAddress': 'Customer Address',
+            'InvoiceDate': 'Invoice Date',
+            'InvoiceId': 'Invoice Id',
+            'InvoiceTotal': 'Invoice Total'
         }
+        
+        # Initialize response structure
+        invoice_data = {}
         
         # Process document if available
         if hasattr(result, 'documents') and result.documents:
             document = result.documents[0]
             fields = document.fields
 
-            # Process CustomerName
-            if 'CustomerName' in fields:
-                invoice_data["CustomerName"] = fields['CustomerName'].content
-                invoice_data["confidence_scores"]["CustomerName"] = fields['CustomerName'].confidence
-
-            # Process CustomerAddress
-            if 'CustomerAddress' in fields:
-                invoice_data["CustomerAddress"] = fields['CustomerAddress'].content
-                invoice_data["confidence_scores"]["CustomerAddress"] = fields['CustomerAddress'].confidence
-
-            # Process InvoiceDate
-            if 'InvoiceDate' in fields:
-                invoice_data["InvoiceDate"] = fields['InvoiceDate'].content
-                invoice_data["confidence_scores"]["InvoiceDate"] = fields['InvoiceDate'].confidence
-
-            # Process InvoiceId
-            if 'InvoiceId' in fields:
-                invoice_data["InvoiceId"] = fields['InvoiceId'].content
-                invoice_data["confidence_scores"]["InvoiceId"] = fields['InvoiceId'].confidence
-
-            # Process InvoiceTotal
-            if 'InvoiceTotal' in fields:
-                invoice_data["InvoiceTotal"] = fields['InvoiceTotal'].content
-                invoice_data["confidence_scores"]["InvoiceTotal"] = fields['InvoiceTotal'].confidence
+            # Process each field with the new structure
+            for api_field, display_field in field_mapping.items():
+                if api_field in fields:
+                    invoice_data[display_field] = {
+                        "value": fields[api_field].content,
+                        "confidence": fields[api_field].confidence
+                    }
+                else:
+                    invoice_data[display_field] = {
+                        "value": None,
+                        "confidence": 0.0
+                    }
 
         logger.info(f"Extracted invoice data: {invoice_data}")
         return invoice_data
@@ -218,9 +208,3 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting FastAPI application")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-
-
-
-
-
-
