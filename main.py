@@ -69,7 +69,7 @@ async def extract_first_page(file_content: bytes) -> str:
                 file_content,
                 first_page=1,
                 last_page=1,
-                dpi=200,
+                dpi=300,
                 fmt='PNG'
             )
             
@@ -94,7 +94,7 @@ async def extract_first_page(file_content: bytes) -> str:
                 img_buffer,
                 format='PNG',
                 optimize=True,
-                quality=85
+                quality=100
             )
             img_buffer.seek(0)
             
@@ -208,3 +208,4 @@ if __name__ == "__main__":
     import uvicorn
     logger.info("Starting FastAPI application")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    
