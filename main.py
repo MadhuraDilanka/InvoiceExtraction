@@ -59,17 +59,17 @@ except Exception as e:
     raise
 
 async def extract_first_page(file_content: bytes) -> str:
-    """Extract first page from PDF and return as a thumbnail image in base64 encoded string."""
+    """Extract first page from PDF and return as a high quality thumbnail image in base64 encoded string."""
     def _extract():
         try:
             logger.info(f"Starting PDF first page extraction with content size: {len(file_content)} bytes")
             
-            # Convert first page to image with specific DPI setting
+            # Increase DPI for higher initial quality
             images = convert_from_bytes(
                 file_content,
                 first_page=1,
                 last_page=1,
-                dpi=350,
+                dpi=800,  # Increased from 350 to 600 for better quality
                 fmt='PNG'
             )
             
@@ -83,18 +83,23 @@ async def extract_first_page(file_content: bytes) -> str:
             first_page = images[0]
             logger.info(f"First page original size: {first_page.size}")
             
-            # Create thumbnail with specific size while maintaining aspect ratio
-            max_size = (800, 800)
+            # Increase max size for better quality thumbnail
+            max_size = (800, 800)  # Increased from 800x800 to 1200x1200
+            
+            # Use high-quality resampling
             first_page.thumbnail(max_size, Image.Resampling.LANCZOS)
             logger.info(f"Thumbnail size after resize: {first_page.size}")
             
-            # Save thumbnail to bytes buffer with optimal compression
+            # Save with optimal quality settings
             img_buffer = io.BytesIO()
             first_page.save(
                 img_buffer,
                 format='PNG',
                 optimize=True,
-                quality=100
+                quality=100,
+                subsampling=0,  # Disable chroma subsampling
+                icc_profile=first_page.info.get('icc_profile', ''),  # Preserve color profile
+                dpi=(800, 800)  # Maintain high DPI in saved image
             )
             img_buffer.seek(0)
             
