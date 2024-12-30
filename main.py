@@ -69,7 +69,7 @@ async def extract_first_page(file_content: bytes) -> str:
                 file_content,
                 first_page=1,
                 last_page=1,
-                dpi=300,
+                dpi=350,
                 fmt='PNG'
             )
             
